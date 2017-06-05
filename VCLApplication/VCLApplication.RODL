@@ -1,0 +1,29 @@
+<Library Name="VCLApplication" Namespace="VCLApplication" UID="{e11563ba-39ef-46c9-8512-37744d32530f}" Version="4.0">
+<Services>
+<Service Name="LoginService" UID="{930b7766-cc2b-4e5d-a0b1-e899e703774c}" Ancestor="SimpleLoginService">
+<Interfaces>
+<Interface Name="Default" UID="{faf8032a-a747-492f-8355-2271cc13f638}">
+<Operations>
+</Operations>
+</Interface>
+</Interfaces>
+</Service>
+<Service Name="DataService" UID="{5e852a44-3cc0-45f9-896e-031d53127de7}" Ancestor="DataAbstractService">
+<Interfaces>
+<Interface Name="Default" UID="{4838abcc-c6d4-4329-be43-2dc5850fbe84}">
+<Operations>
+</Operations>
+</Interface>
+</Interfaces>
+</Service>
+</Services>
+<Structs>
+</Structs>
+<Enums>
+</Enums>
+<Arrays>
+</Arrays>
+<Uses>
+<Use Name="DataAbstract" UID="{65573fb4-6d49-4d49-8f04-8eb921a24ba3}" Rodl="$(Data Abstract for Delphi)\Source\DataAbstract4.RODL">
+</Use></Uses>
+</Library>
