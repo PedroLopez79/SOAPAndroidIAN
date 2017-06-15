@@ -5,7 +5,7 @@ interface
 uses Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
   System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
   Vcl.AppEvnts, Vcl.StdCtrls, IdHTTPWebBrokerBridge, Web.HTTPApp, ShellAPI,
-  Vcl.ExtCtrls, Vcl.Menus;
+  Vcl.ExtCtrls, Vcl.Menus, UtileriasComun;
 
   const
   WM_ICONTRAY = WM_USER + 100;
@@ -23,6 +23,7 @@ type
     Mostrar1: TMenuItem;
     Ocultar1: TMenuItem;
     Cerrar1: TMenuItem;
+    Timer2: TTimer;
     procedure FormCreate(Sender: TObject);
     procedure ApplicationEvents1Idle(Sender: TObject; var Done: Boolean);
     procedure ButtonStartClick(Sender: TObject);
@@ -36,6 +37,8 @@ type
     procedure PopupMenu1Popup(Sender: TObject);
     procedure FormHide(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure RemueveIcono;
+    procedure Timer1Timer(Sender: TObject);
   private
     FServer: TIdHTTPWebBrokerBridge;
     TrayIconData: TNotifyIconData;
@@ -89,7 +92,7 @@ begin
   Hide; { hide the main form }
 
   WindowState := wsMinimized; { the mainform will start up minimized }
-  Timer1.Enabled := True;
+  Timer2.Enabled := True;
 end;
 
 procedure TForm1.Cerrar1Click(Sender: TObject);
@@ -99,10 +102,12 @@ end;
 
 procedure TForm1.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
-  if MessageDlg('Esta seguro que quiere salir?', mtconfirmation, [mbOK, mbNo], 0) = mrOk then
-  CanClose:= True
-  else
-  CanClose:= False;
+  //if MessageDlg('Esta seguro que quiere salir?', mtconfirmation, [mbOK, mbNo], 0) = mrOk then
+  //CanClose:= True
+  //else
+  //CanClose:= False;
+
+  CanClose:= True;
 end;
 
 procedure TForm1.FormCreate(Sender: TObject);
@@ -124,6 +129,7 @@ begin
 
 Shell_NotifyIcon(NIM_ADD, @TrayIconData);
 
+Sleep(1000);
 StartServer;
 
 end;
@@ -146,7 +152,7 @@ begin
   if ToBeHidden then
   begin
     WindowState := wsMinimized; { the mainform will start up minimized }
-    Timer1.Enabled := True; { start the timer to switch later to 'hidden' }
+    Timer2.Enabled := True; { start the timer to switch later to 'hidden' }
   end;
 end;
 
@@ -164,6 +170,11 @@ begin
   Cerrar1.Enabled:= Visible;
 end;
 
+procedure TForm1.RemueveIcono;
+begin
+  Shell_NotifyIcon(NIM_DELETE, @TrayIconData);
+end;
+
 procedure TForm1.StartServer;
 begin
   if not FServer.Active then
@@ -172,6 +183,12 @@ begin
     FServer.DefaultPort := StrToInt(EditPort.Text);
     FServer.Active := True;
   end;
+end;
+
+procedure TForm1.Timer1Timer(Sender: TObject);
+begin
+  RemueveIcono;
+  AppRestart;
 end;
 
 procedure TForm1.TrayMessage(var Msg: TMessage);

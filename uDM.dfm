@@ -77,7 +77,7 @@ object DM: TDM
     UserAgent = 'RemObjects SDK'
     DispatchOptions = []
     ServerLocators = <>
-    TargetURL = 'http://127.0.0.1:8001/BIN'
+    TargetURL = 'http://IANSERVICES.DDNS.NET:8001/BIN'
     TrustInvalidCA = False
     Left = 16
     Top = 8
@@ -428,5 +428,37 @@ object DM: TDM
     IndexDefs = <>
     Left = 384
     Top = 304
+  end
+  object cdsAlmacenNum: TDAMemDataTable
+    Fields = <
+      item
+        Name = 'IDALMACEN'
+        DataType = datInteger
+        Required = True
+        InPrimaryKey = True
+      end
+      item
+        Name = 'NOMBRE'
+        DataType = datString
+        Size = 70
+      end
+      item
+        Name = 'NUMEROESTACION'
+        DataType = datInteger
+      end>
+    LogicalName = 'dbo ALMACEN'
+    Params = <>
+    RemoteDataAdapter = RemoteDataAdapter
+    RemoteUpdatesOptions = []
+    StreamingOptions = [soDisableEventsWhileStreaming]
+    IndexDefs = <>
+    Left = 207
+    Top = 249
+  end
+  object dsAlmacenNum: TDADataSource
+    DataSet = cdsAlmacenNum.Dataset
+    DataTable = cdsAlmacenNum
+    Left = 208
+    Top = 296
   end
 end

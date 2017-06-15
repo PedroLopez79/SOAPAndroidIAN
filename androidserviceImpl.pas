@@ -27,6 +27,7 @@ type
   end;
 
 implementation
+uses FormUnit1;
 
 function Tandroidservice.echoEnum(const Value: TEnumTest): TEnumTest; stdcall;
 begin
@@ -169,11 +170,25 @@ end;
 function Tandroidservice.generareporte(const nombrereporte,fechaini,fechafin,numestacion,idalmacen:AnsiString): AnsiString; stdcall;
 var ruta: String;
     Splitted: TArray<String>;
+    almacen: String;
 begin
+  try
+  DM.cdsAlmacenNum.Close;
+  DM.cdsAlmacenNum.Filtered:=False;
+  DM.cdsAlmacenNum.Filter:='NOMBRE = ''' + idalmacen + ''' AND NUMEROESTACION = ' + numestacion;
+  DM.cdsAlmacenNum.Filtered:=True;
+  DM.cdsAlmacenNum.Open;
+
+  if not (DM.cdsAlmacenNum.EOF) then
+     almacen:= DM.cdsAlmacenNum.FieldByName('IDALMACEN').AsString;
+
   ruta:= DM.Imprimir(nombrereporte,0,'FECHAINI='+fechaini+'@FECHAFIN='+fechafin+'@ESTACION='+numestacion+'@ALMACENINI='
-                       +idalmacen,DM.RUTAPDF,'PDF');
+                       +almacen,DM.RUTAPDF,'PDF');
   Splitted:= ruta.Split(['\']);
   Result:= Splitted[length(Splitted) - 1];
+  finally
+    Form1.Timer1.Enabled:= True;
+  end;
 end;
 
 function Tandroidservice.comboalmacen(const estacionid: AnsiString): AnsiString; stdcall;
