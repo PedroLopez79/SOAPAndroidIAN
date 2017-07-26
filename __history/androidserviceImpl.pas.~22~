@@ -1,0 +1,223 @@
+{ Invokable implementation File for Tandroidservice which implements Iandroidservice }
+
+unit androidserviceImpl;
+
+interface
+
+uses Soap.InvokeRegistry, System.Types, Soap.XSBuiltIns, androidserviceIntf, dialogs,
+sysutils, Soap.EncdDecd, uDM, Classes;
+
+type
+
+  { Tandroidservice }
+  Tandroidservice = class(TInvokableClass, Iandroidservice)
+  public
+    function echoEnum(const Value: TEnumTest): TEnumTest; stdcall;
+    function echoDoubleArray(const Value: TDoubleArray): TDoubleArray; stdcall;
+    function echoMyEmployee(const Value: TMyEmployee): TMyEmployee; stdcall;
+    function echoDouble(const Value: Double): Double; stdcall;
+    function holamundo: String; stdcall;
+    function guardadatosfirma(const Actividad,Frecuencia,Observaciones,FechaHora,Folio,Fecha,usuarioid,estacionid,firmabase64,fotobase64:AnsiString): AnsiString; stdcall;
+    function login(usr,password:AnsiString): AnsiString; stdcall;
+    function firmadefault(const Actividad, Frecuencia,
+  Observaciones, FechaHora, Folio, Fecha, usuarioid, estacionid,
+  firmabase64,fotobase64: AnsiString): AnsiString; stdcall;
+    function generareporte(const nombrereporte,fechaini,fechafin,numestacion,idalmacen:AnsiString): AnsiString; stdcall;
+    function comboalmacen(const estacionid: AnsiString):AnsiString; stdcall;
+    function obtencomboscompras(const estacionid: AnsiString):AnsiString; stdcall;
+    function IANmovimientoalmacenguarda(const maestro,detalle:AnsiString): AnsiString; stdcall;
+  end;
+
+implementation
+uses FormUnit1;
+
+function Tandroidservice.echoEnum(const Value: TEnumTest): TEnumTest; stdcall;
+begin
+  { TODO : Implement method echoEnum }
+  Result := Value;
+end;
+
+function Tandroidservice.echoDoubleArray(const Value: TDoubleArray): TDoubleArray; stdcall;
+begin
+  { TODO : Implement method echoDoubleArray }
+  Result := Value;
+end;
+
+function Tandroidservice.echoMyEmployee(const Value: TMyEmployee): TMyEmployee; stdcall;
+begin
+  { TODO : Implement method echoMyEmployee }
+  Result := TMyEmployee.Create;
+end;
+
+function Tandroidservice.firmadefault(const Actividad, Frecuencia,
+  Observaciones, FechaHora, Folio, Fecha, usuarioid, estacionid,
+  firmabase64,fotobase64: AnsiString): AnsiString; stdcall;
+var
+  respuesta: AnsiString;
+  memStm : TMemoryStream;
+  fol: integer;
+  resultado: AnsiString;
+  bytes: TBytes;
+  str: String;
+
+begin
+  respuesta:= '-1';
+
+  bytes :=  DecodeBase64(fotobase64);
+  str := TEncoding.ANSI.GetString(bytes);
+
+  memStm:= TMemoryStream.Create;
+
+  DM.cdsFirmaDefaultUsuario.Close;
+  DM.cdsFirmaDefaultUsuario.ParamByName('USUARIOID').AsInteger:= strtoint(usuarioid);
+  DM.cdsFirmaDefaultUsuario.Open;
+
+  if NOT (DM.cdsFirmaDefaultUsuario.Eof) then
+  begin
+     DM.cdsFirmaDefaultUsuario.FieldByName('FIRMADEFAULT').SaveToStream(memStm);
+  //
+  //   respuesta:= EncodeBase64(memStm, memStm.Size);
+  end;
+  fol:= DM.Folio('BITACORAID','');
+
+  DM.cdsBitacoraServ.Close;
+  DM.cdsBitacoraServ.Open;
+
+  try
+
+  DM.cdsBitacoraServ.Append;
+  DM.cdsBitacoraServ.FieldByName('BITACORAID').AsInteger:= fol;
+  DM.cdsBitacoraServ.FieldByName('USUARIOID').AsInteger:= strtoint(usuarioid);
+  DM.cdsBitacoraServ.FieldByName('FECHA').AsDateTime:= strtodate(Fecha);
+  DM.cdsBitacoraServ.FieldByName('NOTA').AsString:= '.';
+  DM.cdsBitacoraServ.FieldByName('ACTIVIDAD').AsString:= Actividad;
+  DM.cdsBitacoraServ.FieldByName('FRECUENCIA').AsString:= Frecuencia;
+  DM.cdsBitacoraServ.FieldByName('OBSERVACIONES').AsString:= Observaciones;
+  DM.cdsBitacoraServ.FieldByName('ESTACIONID').AsInteger:= strtoint(estacionid);
+  DM.cdsBitacoraServ.FieldByName('FECHAHORA').AsDateTime:= StrToDateTime(FechaHora);
+  DM.cdsBitacoraServ.FieldByName('FOLIO').AsString:= Folio;
+  DM.cdsBitacoraServ.FieldByName('FIRMA').LoadFromStream(memStm);
+  DM.cdsBitacoraServ.FieldByName('FOTO1').AsString:= str;
+
+  DM.cdsBitacoraServ.Post;
+  DM.cdsBitacoraServ.ApplyUpdates();
+  respuesta:= ' OK';
+ except
+    on E : Exception do
+    respuesta:= E.ClassName+' error raised, with message : '+E.Message;
+  end;
+
+  result:= respuesta;
+end;
+
+function Tandroidservice.guardadatosfirma(const Actividad, Frecuencia,
+  Observaciones, FechaHora, Folio, Fecha, usuarioid, estacionid,
+  firmabase64,fotobase64: AnsiString): AnsiString; stdcall;
+var
+  bytes, bytes2: TBytes;
+  str, str2: String;
+  fol: integer;
+  resultado: AnsiString;
+begin
+  resultado:= '-1';
+  bytes :=  DecodeBase64(firmabase64);
+  str := TEncoding.ANSI.GetString(bytes);
+
+  bytes2:= DecodeBase64(fotobase64);
+  str2:= TEncoding.ANSI.GetString(bytes2);
+
+  fol:= DM.Folio('BITACORAID','');
+
+  DM.cdsBitacoraServ.Close;
+  DM.cdsBitacoraServ.Open;
+
+  try
+
+  DM.cdsBitacoraServ.Append;
+  DM.cdsBitacoraServ.FieldByName('BITACORAID').AsInteger:= fol;
+  DM.cdsBitacoraServ.FieldByName('USUARIOID').AsInteger:= strtoint(usuarioid);
+  DM.cdsBitacoraServ.FieldByName('FECHA').AsDateTime:= strtodate(Fecha);
+  DM.cdsBitacoraServ.FieldByName('NOTA').AsString:= '.';
+  DM.cdsBitacoraServ.FieldByName('ACTIVIDAD').AsString:= Actividad;
+  DM.cdsBitacoraServ.FieldByName('FRECUENCIA').AsString:= Frecuencia;
+  DM.cdsBitacoraServ.FieldByName('OBSERVACIONES').AsString:= Observaciones;
+  DM.cdsBitacoraServ.FieldByName('ESTACIONID').AsInteger:= strtoint(estacionid);
+  DM.cdsBitacoraServ.FieldByName('FECHAHORA').AsDateTime:= StrToDateTime(FechaHora);
+  DM.cdsBitacoraServ.FieldByName('FOLIO').AsString:= Folio;
+  DM.cdsBitacoraServ.FieldByName('FIRMA').AsString:= str;
+  DM.cdsBitacoraServ.FieldByName('FOTO1').AsString:= str2;
+
+  DM.cdsBitacoraServ.Post;
+  DM.cdsBitacoraServ.ApplyUpdates();
+
+  resultado:= ' OK';
+ except
+    on E : Exception do
+    resultado:= E.ClassName+' error raised, with message : '+E.Message;
+  end;
+
+  result:= resultado;
+end;
+
+function Tandroidservice.holamundo: String;
+begin
+  showmessage('hola');
+end;
+
+function Tandroidservice.IANmovimientoalmacenguarda(const maestro,
+  detalle: AnsiString): AnsiString; stdcall;
+begin
+  //result:= DM.Servidor.IANcomprasGuarda(maestro,detalle);
+end;
+
+function Tandroidservice.login(usr, password: AnsiString): AnsiString; stdcall;
+begin
+  result:= DM.login(usr, password);
+end;
+
+function Tandroidservice.obtencomboscompras(const estacionid: AnsiString): AnsiString; stdcall;
+begin
+  result:= DM.Servidor.comboscompras(estacionid);
+end;
+
+function Tandroidservice.generareporte(const nombrereporte,fechaini,fechafin,numestacion,idalmacen:AnsiString): AnsiString; stdcall;
+var ruta: String;
+    Splitted: TArray<String>;
+    almacen: String;
+begin
+  try
+  DM.cdsAlmacenNum.Close;
+  DM.cdsAlmacenNum.Filtered:=False;
+  DM.cdsAlmacenNum.Filter:='NOMBRE = ''' + idalmacen + ''' AND NUMEROESTACION = ' + numestacion;
+  DM.cdsAlmacenNum.Filtered:=True;
+  DM.cdsAlmacenNum.Open;
+
+  if not (DM.cdsAlmacenNum.EOF) then
+     almacen:= DM.cdsAlmacenNum.FieldByName('IDALMACEN').AsString;
+
+  ruta:= DM.Imprimir(nombrereporte,0,'FECHAINI='+fechaini+'@FECHAFIN='+fechafin+'@ESTACION='+numestacion+'@ALMACENINI='
+                       +almacen,DM.RUTAPDF,'PDF');
+  Splitted:= ruta.Split(['\']);
+  Result:= Splitted[length(Splitted) - 1];
+  finally
+    Form1.Timer1.Enabled:= True;
+  end;
+end;
+
+function Tandroidservice.comboalmacen(const estacionid: AnsiString): AnsiString; stdcall;
+begin
+  result:= DM.Servidor.comboestacion(estacionid);
+end;
+
+function Tandroidservice.echoDouble(const Value: Double): Double; stdcall;
+begin
+  { TODO : Implement method echoDouble }
+  Result := Value;
+end;
+
+
+initialization
+{ Invokable classes must be registered }
+   InvRegistry.RegisterInvokableClass(Tandroidservice);
+end.
+

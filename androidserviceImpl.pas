@@ -24,6 +24,8 @@ type
   firmabase64,fotobase64: AnsiString): AnsiString; stdcall;
     function generareporte(const nombrereporte,fechaini,fechafin,numestacion,idalmacen:AnsiString): AnsiString; stdcall;
     function comboalmacen(const estacionid: AnsiString):AnsiString; stdcall;
+    function obtencomboscompras(const estacionid: AnsiString):AnsiString; stdcall;
+    function IANmovimientoalmacenguarda(const MovimientoAlmacenMaestro,MovimientoAlmacenDetalle:AnsiString): AnsiString; stdcall;
   end;
 
 implementation
@@ -162,9 +164,20 @@ begin
   showmessage('hola');
 end;
 
+function Tandroidservice.IANmovimientoalmacenguarda(const MovimientoAlmacenMaestro,
+MovimientoAlmacenDetalle:AnsiString): AnsiString; stdcall;
+begin
+  result:= DM.Servidor.IANcomprasGuarda(MovimientoAlmacenMaestro,MovimientoAlmacenDetalle);
+end;
+
 function Tandroidservice.login(usr, password: AnsiString): AnsiString; stdcall;
 begin
   result:= DM.login(usr, password);
+end;
+
+function Tandroidservice.obtencomboscompras(const estacionid: AnsiString): AnsiString; stdcall;
+begin
+  result:= DM.Servidor.comboscompras(estacionid);
 end;
 
 function Tandroidservice.generareporte(const nombrereporte,fechaini,fechafin,numestacion,idalmacen:AnsiString): AnsiString; stdcall;

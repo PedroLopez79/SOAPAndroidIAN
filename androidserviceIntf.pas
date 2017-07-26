@@ -38,7 +38,9 @@ type
     function login(usr,password:AnsiString): AnsiString; stdcall;
     function firmadefault(const Actividad, Frecuencia,Observaciones, FechaHora, Folio, Fecha, usuarioid, estacionid,firmabase64,fotobase64: AnsiString): AnsiString; stdcall;
     function comboalmacen(const estacionid: AnsiString):AnsiString; stdcall;
+    function obtencomboscompras(const estacionid: AnsiString):AnsiString; stdcall;
     function generareporte(const nombrereporte,fechaini,fechafin,numestacion,idalmacen:AnsiString): AnsiString; stdcall;
+    function IANmovimientoalmacenguarda(const MovimientoAlmacenMaestro,MovimientoAlmacenDetalle:AnsiString): AnsiString; stdcall;
   end;
 
 implementation

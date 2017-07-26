@@ -1393,6 +1393,8 @@ type
     function Exporta(const ExportarID: Integer): TExporta;
     function CierraLiquidacion(const LiquidacionID: Integer): AnsiString;
     function comboestacion(const estacionid: AnsiString): AnsiString;
+    function comboscompras(const estacionid: AnsiString): AnsiString;
+    function IANcomprasGuarda(const MovimientoAlmacenMaestro: AnsiString; const MovimientoAlmacenDetalle: AnsiString): AnsiString;
   end;
 
   { CoServiceIngresos }
@@ -1457,6 +1459,8 @@ type
     function Exporta(const ExportarID: Integer): TExporta;
     function CierraLiquidacion(const LiquidacionID: Integer): AnsiString;
     function comboestacion(const estacionid: AnsiString): AnsiString;
+    function comboscompras(const estacionid: AnsiString): AnsiString;
+    function IANcomprasGuarda(const MovimientoAlmacenMaestro: AnsiString; const MovimientoAlmacenDetalle: AnsiString): AnsiString;
   end;
 
 implementation
@@ -10602,6 +10606,53 @@ begin
   try
     lMessage.InitializeRequestMessage(lTransportChannel, 'LibraryIngresos', __InterfaceName, 'comboestacion');
     lMessage.Write('estacionid', System.TypeInfo(AnsiString), estacionid, []);
+    lMessage.Finalize;
+
+    lTransportChannel.Dispatch(lMessage);
+
+    lMessage.Read('Result', System.TypeInfo(AnsiString), Result, []);
+  finally
+    lMessage.UnsetAttributes(lTransportChannel);
+    lMessage.FreeStream;
+    lMessage := nil;
+    lTransportChannel := nil;
+  end;
+end;
+
+function TServiceIngresos_Proxy.comboscompras(const estacionid: AnsiString): AnsiString;
+var
+  lMessage: IROMessage;
+  lTransportChannel: IROTransportChannel;
+begin
+  lMessage := __GetMessage;
+  lTransportChannel := __TransportChannel;
+  try
+    lMessage.InitializeRequestMessage(lTransportChannel, 'LibraryIngresos', __InterfaceName, 'comboscompras');
+    lMessage.Write('estacionid', System.TypeInfo(AnsiString), estacionid, []);
+    lMessage.Finalize;
+
+    lTransportChannel.Dispatch(lMessage);
+
+    lMessage.Read('Result', System.TypeInfo(AnsiString), Result, []);
+  finally
+    lMessage.UnsetAttributes(lTransportChannel);
+    lMessage.FreeStream;
+    lMessage := nil;
+    lTransportChannel := nil;
+  end;
+end;
+
+function TServiceIngresos_Proxy.IANcomprasGuarda(const MovimientoAlmacenMaestro: AnsiString; const MovimientoAlmacenDetalle: AnsiString): AnsiString;
+var
+  lMessage: IROMessage;
+  lTransportChannel: IROTransportChannel;
+begin
+  lMessage := __GetMessage;
+  lTransportChannel := __TransportChannel;
+  try
+    lMessage.InitializeRequestMessage(lTransportChannel, 'LibraryIngresos', __InterfaceName, 'IANcomprasGuarda');
+    lMessage.Write('MovimientoAlmacenMaestro', System.TypeInfo(AnsiString), MovimientoAlmacenMaestro, []);
+    lMessage.Write('MovimientoAlmacenDetalle', System.TypeInfo(AnsiString), MovimientoAlmacenDetalle, []);
     lMessage.Finalize;
 
     lTransportChannel.Dispatch(lMessage);

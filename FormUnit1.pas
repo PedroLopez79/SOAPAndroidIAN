@@ -39,6 +39,7 @@ type
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure RemueveIcono;
     procedure Timer1Timer(Sender: TObject);
+    procedure Timer2Timer(Sender: TObject);
   private
     FServer: TIdHTTPWebBrokerBridge;
     TrayIconData: TNotifyIconData;
@@ -189,6 +190,11 @@ procedure TForm1.Timer1Timer(Sender: TObject);
 begin
   RemueveIcono;
   AppRestart;
+end;
+
+procedure TForm1.Timer2Timer(Sender: TObject);
+begin
+  Hide;
 end;
 
 procedure TForm1.TrayMessage(var Msg: TMessage);

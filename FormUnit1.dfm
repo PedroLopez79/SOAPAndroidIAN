@@ -64,7 +64,7 @@ object Form1: TForm1
   object ApplicationEvents1: TApplicationEvents
     OnIdle = ApplicationEvents1Idle
     Left = 288
-    Top = 24
+    Top = 64
   end
   object Timer1: TTimer
     Enabled = False
@@ -76,7 +76,7 @@ object Form1: TForm1
   object PopupMenu1: TPopupMenu
     OnPopup = PopupMenu1Popup
     Left = 288
-    Top = 160
+    Top = 120
     object Mostrar1: TMenuItem
       Caption = 'Mostrar'
       OnClick = Mostrar1Click
@@ -91,6 +91,7 @@ object Form1: TForm1
     end
   end
   object Timer2: TTimer
+    OnTimer = Timer2Timer
     Left = 160
     Top = 120
   end
