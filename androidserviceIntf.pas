@@ -40,6 +40,7 @@ type
     function comboalmacen(const estacionid: AnsiString):AnsiString; stdcall;
     function obtencomboscompras(const estacionid: AnsiString):AnsiString; stdcall;
     function generareporte(const nombrereporte,fechaini,fechafin,numestacion,idalmacen:AnsiString): AnsiString; stdcall;
+    function imprimereporte(const nombrereporte,fechaini,fechafin,numestacion,idalmacen:AnsiString): AnsiString; stdcall;
     function IANmovimientoalmacenguarda(const MovimientoAlmacenMaestro,MovimientoAlmacenDetalle:AnsiString): AnsiString; stdcall;
   end;
 

@@ -23,6 +23,7 @@ type
   Observaciones, FechaHora, Folio, Fecha, usuarioid, estacionid,
   firmabase64,fotobase64: AnsiString): AnsiString; stdcall;
     function generareporte(const nombrereporte,fechaini,fechafin,numestacion,idalmacen:AnsiString): AnsiString; stdcall;
+    function imprimereporte(const nombrereporte,fechaini,fechafin,numestacion,idalmacen:AnsiString): AnsiString; stdcall;
     function comboalmacen(const estacionid: AnsiString):AnsiString; stdcall;
     function obtencomboscompras(const estacionid: AnsiString):AnsiString; stdcall;
     function IANmovimientoalmacenguarda(const MovimientoAlmacenMaestro,MovimientoAlmacenDetalle:AnsiString): AnsiString; stdcall;
@@ -170,6 +171,31 @@ begin
   result:= DM.Servidor.IANcomprasGuarda(MovimientoAlmacenMaestro,MovimientoAlmacenDetalle);
 end;
 
+function Tandroidservice.imprimereporte(const nombrereporte, fechaini, fechafin,
+  numestacion, idalmacen: AnsiString): AnsiString; stdcall
+var ruta: String;
+    Splitted: TArray<String>;
+    almacen: String;
+begin
+  try
+  DM.cdsAlmacenNum.Close;
+  DM.cdsAlmacenNum.Filtered:=False;
+  DM.cdsAlmacenNum.Filter:='NOMBRE = ''' + idalmacen + ''' AND NUMEROESTACION = ' + numestacion;
+  DM.cdsAlmacenNum.Filtered:=True;
+  DM.cdsAlmacenNum.Open;
+
+  if not (DM.cdsAlmacenNum.EOF) then
+     almacen:= DM.cdsAlmacenNum.FieldByName('IDALMACEN').AsString;
+
+  ruta:= DM.Imprimir(nombrereporte,0,'FECHAINI='+fechaini+'@FECHAFIN='+fechafin+'@ESTACION='+numestacion+'@ALMACENINI='
+                       +almacen,DM.RUTAPDF,'PDF', True);
+  Splitted:= ruta.Split(['\']);
+  Result:= Splitted[length(Splitted) - 1];
+  finally
+    Form1.Timer1.Enabled:= True;
+  end;
+end;
+
 function Tandroidservice.login(usr, password: AnsiString): AnsiString; stdcall;
 begin
   result:= DM.login(usr, password);
@@ -196,7 +222,7 @@ begin
      almacen:= DM.cdsAlmacenNum.FieldByName('IDALMACEN').AsString;
 
   ruta:= DM.Imprimir(nombrereporte,0,'FECHAINI='+fechaini+'@FECHAFIN='+fechafin+'@ESTACION='+numestacion+'@ALMACENINI='
-                       +almacen,DM.RUTAPDF,'PDF');
+                       +almacen,DM.RUTAPDF,'PDF', False);
   Splitted:= ruta.Split(['\']);
   Result:= Splitted[length(Splitted) - 1];
   finally

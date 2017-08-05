@@ -10,7 +10,7 @@ uses
   uROBaseConnection, uROTransportChannel, uROBaseHTTPClient,
   uROWinInetHttpChannel, UtileriasComun, LibraryIngresos_Intf, ppParameter,
   ppProd, ppClass, ppReport, ppComm, ppRelatv, ppDB, ppDBPipe, uDACDSDataTable,
-  DateUtils, raCodMod;
+  DateUtils, raCodMod, ppBands, ppCache, ppDesignLayer, ppPrnDev, Dialogs;
 
 type
   TDM = class(TDataModule)
@@ -35,6 +35,13 @@ type
     rdaDetalle: TDARemoteDataAdapter;
     rdaReportesWEB: TDARemoteDataAdapter;
     cdsReportes: TDACDSDataTable;
+    cdsAlmacenNum: TDAMemDataTable;
+    dsAlmacenNum: TDADataSource;
+    ppDesignLayers1: TppDesignLayers;
+    ppDesignLayer1: TppDesignLayer;
+    ppHeaderBand1: TppHeaderBand;
+    ppDetailBand1: TppDetailBand;
+    ppFooterBand1: TppFooterBand;
     procedure DataModuleCreate(Sender: TObject);
   private
     { Private declarations }
@@ -44,14 +51,15 @@ type
     Puerto: Integer;
     Parametros: TParametrosBI;
     RUTAPDF: String;
+    NOMBREIMPRESORA: String;
     procedure AsignaParametros(Cad: String);
     function Servidor: IServiceIngresos;
     function Folio(ACampo, ASerie: String): Integer;
     function login(usr,password: String):String;
-    function Imprimir_Proxy(CualReporte: String; IdentificadorID: Integer; AParametros, Ruta, TipoArchivo: String): String;
+    function Imprimir_Proxy(CualReporte: String; IdentificadorID: Integer; AParametros, Ruta, TipoArchivo: String; Directo: Boolean): String;
     procedure Imprime(SQL1, SQL2, Template, Documento, CampoJoin: String; var Ruta: String; TipoArchivo: String; Directo: Boolean = False);
     procedure AbreDataSetsReportes(SQL1, SQL2: String);
-    function Imprimir(CualReporte: String; IdentificadorID: Integer; AParametros, Ruta, TipoArchivo: String): String;
+    function Imprimir(CualReporte: String; IdentificadorID: Integer; AParametros, Ruta, TipoArchivo: String; Directo: Boolean): String;
   end;
 
 var
@@ -183,6 +191,7 @@ begin
   Puerto := StrToInt(LeerRegistro('Puerto', '9090'));
   AsignaServidor(LeerRegistro('Server', '127.0.0.1'));
   RUTAPDF:= LeerRegistro('RUTAPDF', '');
+  NOMBREIMPRESORA:= LeerRegistro('NOMBREIMPRESORA','PRINTER');
 end;
 
 function TDM.Folio(ACampo, ASerie: String): Integer;
@@ -195,10 +204,13 @@ procedure TDM.Imprime(SQL1, SQL2, Template, Documento, CampoJoin: String;
 var
   Aux: TStringStream;
   lFieldLink: TppMasterFieldLink;
+  lPrinterDevice: TppPrinterDevice;
 begin
+  try
   AbreDataSetsReportes(SQL1, SQL2);
   if cdsMaestro.RecordCount < 1 then
   begin
+    showmessage('nada');
     Ruta:='';
     //Error:='No hay datos';
     Exit;
@@ -217,10 +229,21 @@ begin
   repReportes.AllowPrintToFile:=True;
   repReportes.AllowPrintToArchive:=True;
   repReportes.PrinterSetup.DocumentName:=Documento;
+
   if Directo then
   begin
-    repReportes.DeviceType:='Printer';
-    repReportes.ShowPrintDialog:=False;
+    //repReportes.DeviceType:='Printer';
+    //repReportes.ShowPrintDialog:=False;
+
+    {create a printer device}
+    lPrinterDevice := TppPrinterDevice.Create(Self);
+    {add device to report's publisher}
+    lPrinterDevice.Publisher := repReportes.Publisher;
+    {set the printer name for the device}
+    repReportes.Printer.PrinterName  := NOMBREIMPRESORA;
+    {print the report to the devices}
+    Ruta:= 'Imprimiendo';
+    repReportes.PrintToDevices; //you could also create more than one printer devices to print on two or
   end
   else
   begin
@@ -237,24 +260,33 @@ begin
     repReportes.TextFileName := Ruta;
     repReportes.ShowPrintDialog:=False;
   end;
-  repReportes.Print;
+
+  if not Directo then
+     repReportes.Print;
+  except
+     on E : Exception do
+      Ruta:= E.ClassName+' error raised, with message : '+E.Message;
+  end;
 end;
 
 function TDM.Imprimir(CualReporte: String; IdentificadorID: Integer;
-  AParametros, Ruta, TipoArchivo: String): String;
+  AParametros, Ruta, TipoArchivo: String; Directo: Boolean): String;
 begin
   try
     try
-      Result:=Imprimir_Proxy(CualReporte, IdentificadorID, AParametros, Ruta, TipoArchivo);
+      showmessage('imprimiendo 1');
+      Result:=Imprimir_Proxy(CualReporte, IdentificadorID, AParametros, Ruta, TipoArchivo, Directo);
     except
       on E : Exception do
       Result:= E.ClassName+' error raised, with message : '+E.Message;
+      Ruta:=  E.ClassName+' error raised, with message : '+E.Message;
     end;
   finally
 
   end;
-  if not FileExists(Result) then
-    Result:='';
+  if Result <> 'Imprimiendo' then
+     if not FileExists(Result) then
+     Result:='';
   //if Error <> '' then
   //begin
   //  Result:=Error;
@@ -262,10 +294,11 @@ begin
 end;
 
 function TDM.Imprimir_Proxy(CualReporte: String; IdentificadorID: Integer;
-  AParametros, Ruta, TipoArchivo: String): String;
+  AParametros, Ruta, TipoArchivo: String; Directo: Boolean): String;
 begin
     Result:='';
     try
+      showmeesage('imprimir 2');
       cdsReportes.ParamByName('Nombre').AsString:=CualReporte;
       cdsReportes.Open;
       if cdsReportes.RecordCount > 0 then
@@ -278,7 +311,7 @@ begin
                     cdsReportes.FieldByName('Template').AsString,
                     '',
                     cdsReportes.FieldByName('CampoJoin').AsString,
-                    Ruta, TipoArchivo);
+                    Ruta, TipoArchivo, Directo);
         //Error:='';
         Result:=Ruta;
       end
