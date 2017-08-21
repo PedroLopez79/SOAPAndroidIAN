@@ -194,7 +194,7 @@ end;
 
 procedure TForm1.Timer2Timer(Sender: TObject);
 begin
- // Hide;
+  Hide;
 end;
 
 procedure TForm1.TrayMessage(var Msg: TMessage);
